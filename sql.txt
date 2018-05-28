@@ -1,0 +1,78 @@
+【SELECT文の基本】
+
+SELECT ① FROM ② WHERE ③
+① `取得したいカラム名`
+② `テーブル名`
+③ 条件
+
+
+例１）id,feed,user_id,createdを対象に全レコードを取得
+SELECT `id`,`feed`,`created` FROM `feeds` WHERE 1
+
+例２）全カラムを対象にuser_idが13のレコードのみ取得
+SELECT * FROM `feeds` WHERE `user_id`=10
+
+
+
+【テーブル結合　LEFT JOIN句】
+主役テーブルを左に、参照したいテーブルを右に置くJOIN句
+
+構文：SELECT ① FROM ② LEFT JOIN ③ ON ④ WHERE ⑤
+① `取得したいカラム名`
+② 主役テーブル
+③ 参照テーブル
+④ 結合条件
+⑤ 条件
+※テーブルが複数出てくるため、カラム名の指定には`feed`,`id`のように
+ テーブル名からはじめ、ドットでつなぎカラム名を指定します。
+
+SELECT * FROM `feeds` LEFT JOIN `users` ON `feeds` . `user_id`=`users` . `id` WHERE 1
+
+→④結合条件テンプレート
+<<<<`主役テーブル`.`外部キー` = `参照テーブル`.`主キー`>>>>
+
+テーブルにあるキーについて
+主キー：テーブル内で一意である情報（被らない情報）
+外部キー：参照先の主キー
+
+例３）ONの後の結合条件のみ
+主役テーブル members
+主キー：id
+外部キー：tweet_id
+参照テーブル：tweets
+主キー：id
+
+SELECT ~ ON `members`.`tweet_id`=`tweets`.`id` WHERE 1
+
+【カラムの制限】
+SELECT `feeds`.* , `users`.`name` , `users`.`img_name` FROM `feeds` LEFT JOIN `users` ON `feeds` . `user_id`=`users` . `id` WHERE 1
+
+↓効率化・簡略化
+
+【テーブル名のエイリアス（別名）をつける　AS句】
+使い方：`テーブル名` AS `別名`
+SELECT `f`.* , `u`.`name` , `u`.`img_name` FROM `feeds` AS `f` LEFT JOIN `users` AS `u` ON `f` . `user_id`=`u` . `id` WHERE 1
+
+↓効率化・簡略化
+
+【バッククォートは省略可】
+SELECT f.* , u.name , u.img_name FROM feeds AS f LEFT JOIN users AS u ON f . user_id=u . id WHERE 1
+
+【いいねを数える】
+SELECT COUNT(*) as `cnt` FROM `likes`
+
+
+注意：文字は「シングルクオーテーション」で。→「バック」は「列」だと思われる
+　　　isset＝存在する
+【検索の仕組み】
+完全一致検索： ＝「〜」
+前方一致検索： LIKE「'〜%'」
+中間一致検索： LIKE「'%〜%'」
+後方一致検索： LIKE「'%〜'」
+
+
+
+--------------
+SQLを試してみる
+
+理想ー現実＝「問題」
