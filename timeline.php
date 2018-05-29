@@ -163,7 +163,7 @@
       <div class="collapse navbar-collapse" id="navbar-collapse1">
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">タイムライン</a></li>
-          <li><a href="#">ユーザー一覧</a></li>
+          <li><a href="user_index.php">ユーザー一覧</a></li>
         </ul>
 
         <!-- 投稿を検索する機能 -->
