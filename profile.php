@@ -46,7 +46,7 @@ else{
   }
 
   // follower
-  $follower_sql = "SELECT `fw`.*, `u`.`name`, `u`.`img_name`, `u`.`created` FROM `followers` AS `fw` LEFT JOIN `users` AS `u` ON  `fw`.`follower_id` = `u`.`id` WHERE `follower_id`=?";
+  $follower_sql = "SELECT `fw`.*, `u`.`name`, `u`.`img_name`, `u`.`created` FROM `followers` AS `fw` LEFT JOIN `users` AS `u` ON  `fw`.`user_id` = `u`.`id` WHERE `follower_id`=?";
 
   $follower_data = array($user_id);
   $follower_stmt = $dbh->prepare($follower_sql);
@@ -54,12 +54,20 @@ else{
 
   $follower = array();
 
+
+  $follow_flag = 0; //ログインユーザーが今見てるプロフィールページの人をフォローしてたら「1」,フォローしてなかったら「0」
   while (true) {
     $follower_record = $follower_stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($follower_record == false) {
       break;
     }
+
+    // フォロワーの中にログインしてる人がいるかをチェック
+    if($follower_record["user_id"] == $_SESSION["id"]){
+      $follow_flag = 1;
+    } 
+
 
     $follower[] = $follower_record;
   }
@@ -116,7 +124,17 @@ else{
       <div class="col-xs-3 text-center">
         <img src="user_profile_img/<?php echo $profile_user['img_name']; ?>" class="img-thumbnail" />
         <h2><?php echo $profile_user['name']; ?></h2>
-        <button class="btn btn-default btn-block">フォローする</button>
+
+        <?php if ($user_id != $_SESSION["id"]) {?>
+
+        <?php if($follow_flag ==0){ ?>
+        <a href="follow.php?follower_id=<?php echo $profile_user["id"] ;?>" class="img-thumbnail"><button class="btn btn-default btn-block">フォローする</button></a>
+
+        <?php }else{ ?>
+        <a href="#" class="img-thumbnail"><button class="btn btn-default btn-block">フォロー解除する</button></a>
+        <?php } ?>
+
+      <?php } ?>
       </div>
 
       <div class="col-xs-9">
@@ -147,8 +165,8 @@ else{
                 </div>
               </div>
             </div>
+            <?php } ?>
           </div><!-- thumbnail -->
-          <?php } ?>
         </div>
 
           <!-- following -->
