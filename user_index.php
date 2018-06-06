@@ -6,8 +6,10 @@
   // require(dbconnect)
   require('dbconnect.php');
 
+  
+
   // SELECT usersテーブルから$_SESSIONの中に保存されているidを使って一件だけ取り出す
-  $sql = "SELECT * FROM `users` ORDER BY `created` DESC";
+  $sql = "SELECT * FROM `users`";
   $data = array($_SESSION['id']);
   $stmt = $dbh->prepare($sql);
   $stmt->execute($data);
@@ -101,7 +103,7 @@
               </div>
               <div class="col-xs-11">
                 <?php echo $user['name']; ?><br>
-                <a href="#" style="color: #7F7F7F;"><?php echo $user['created']; ?></a><br>
+                <a href="profile.php?user_id=<?php echo $user['id']; ?>" style="color: #7F7F7F;"><?php echo $user['created']; ?></a><br>
                 <span class="comment_count">つぶやき数：<?php echo $user['comment_cnt']; ?></span>
               </div>
             </div>

@@ -44,6 +44,22 @@
 	    }
 	}
 
+  // pageが進むと次の5件を取得する
+  $page = ''; //ページ番号が入る変数
+  $page_row_number = 5; //1ページあたりに表示するデータの数
+
+  if (isset($_GET['page'])) {
+    // GET送信のページ数にしたがって代入する
+    $page = $_GET['page'];
+  }
+  else{
+    // GET送信されているページ数がない場合、1ページ目とみなす
+    $page = 1;
+  }
+
+  // データを取得する開始番号を計算
+  $start = ($page -1) * $page_row_number;
+
   // if文を使って「検索ボタンが押された時・押されてない時」の2パターンに分ける
   // 押された時＝GET送信されたserch_worldというキーがある
   // →あいまい検索、通常→全件取得
@@ -54,7 +70,8 @@
 
   else {
   // LEFT JOINで全件取得
-    $sql = 'SELECT `feeds`.* , `users`.`name` , `users`.`img_name` FROM `feeds` LEFT JOIN `users` ON `feeds` . `user_id`=`users` . `id` WHERE 1 ORDER BY `created` DESC';
+  // LIMIT＝「0から始まる」,「取得したい件数」
+    $sql = "SELECT `feeds`.* , `users`.`name` , `users`.`img_name` FROM `feeds` LEFT JOIN `users` ON `feeds` . `user_id`=`users` . `id` WHERE 1 ORDER BY `created` DESC LIMIT $start,$page_row_number";
   }
 
     $data = array();
@@ -72,6 +89,38 @@
       if ($record == false) {
           break;
       }
+
+
+      // ①（全部取得）commentテーブルから今取得できているfeedに対してのデータを取得
+      $comment_sql = "SELECT `c`.* , `u`.`name` , `u`.`img_name` FROM `comments` AS `c` LEFT JOIN `users` AS `u` ON `c`.`user_id` = `u`.`id` WHERE `feed_id` = ?";
+
+      $comment_data = array($record["id"]);
+      // sql実行
+      $comment_stmt = $dbh->prepare($comment_sql);
+      $comment_stmt->execute($comment_data);
+
+      // ②全てのコメントをとるためになくなるまでwhileで取得
+      $comments_array = array();
+
+      while (true) {
+        $comment_record = $comment_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($comment_record == false) {
+          break;
+        }
+
+        // 重要！！！！！！！！！！！！！！
+        // ③（コメントだけを取得）取得したコメントのデータを追加代入
+        $comments_array[] = $comment_record; 
+      }
+
+        // 重要！！！！！！！！！！！！！！
+        // ④1行分の変数（連想配列）に、新しくcommentsというキーを追加してコメント情報を代入
+      $record["comments"] = $comments_array;
+
+      // echo "<pre>";
+      // var_dump($feeds);
+      // echo "</pre>";
 
 
       // SQL文を実行
@@ -179,7 +228,7 @@
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="user_profile_img/<?php echo $signin_user['img_name']; ?>" width="18" class="img-circle"><?php echo $signin_user['name']; ?><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">マイページ</a></li>
+              <li><a href="profile.php">マイページ</a></li>
               <li><a href="signout.php">サインアウト</a></li>
             </ul>
           </li>
@@ -249,17 +298,22 @@
               <?php  } ?>
 
                 <span class="like_count"><?php if($feed["like_cnt"] != 0){echo "いいね数：" . $feed["like_cnt"]; }?></span>
-                <span class="comment_count">コメント数 : 9</span>
+                <a href="#collapseComment<?php echo $feed["id"]; ?>" data-toggle="collapse" aria-expamded="false"><span class="comment_count">コメント数：<?php echo $feed["comment_count"]; ?></span></a>
 
                 <!-- 編集・削除権限をログインしてる人だけに表示される -->
                 <?php if ($feed["user_id"] == $_SESSION["id"]) {?>
 
-                  <a href="edit.php?feed_id=<?php echo $feed["id"] ?>" class="btn btn-success btn-xs">編集</a>
+                  <a href="edit.php?feed_id=<?php echo $feed["id"]; ?>" class="btn btn-success btn-xs">編集</a>
                   <a onclick="return confirm('ほんとに消しちゃうの?')" href="delete.php?feed_id=<?php echo $feed["id"] ?>" class="btn btn-danger btn-xs">削除</a>
 
                 <?php } ?>
 
               </div>
+
+              <!-- コメントが押されたら表示される領域 -->
+              <!-- <div class="collapse" id="collapseComment"></div>
+                表示の確認！ -->
+              <?php include("comment_view.php"); ?>
             </div>
           </div>
           <?php } ?>
@@ -267,8 +321,12 @@
 
         <div aria-label="Page navigation">
           <ul class="pager">
-            <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
-            <li class="next"><a href="#">Newer <span aria-hidden="true">&rarr;</span></a></li>
+            <?php if ($page>=2) { ?>
+            <li class="previous"><a href="timeline.php?page=<?php echo $page-1;?>"><span aria-hidden="true">&larr;</span> Newer</a></li>
+            <?php } ?>
+
+            <li class="next"><a href="timeline.php?page=<?php echo $page+1; ?>">Older <span aria-hidden="true">&rarr;</span></a></li>
+
           </ul>
         </div>
       </div>
