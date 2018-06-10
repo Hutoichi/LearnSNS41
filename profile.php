@@ -2,6 +2,7 @@
 
 session_start();
 require("dbconnect.php");
+require('function.php');
 
 if (isset($_GET["user_id"])) {
 
@@ -16,14 +17,15 @@ else{
 
 }
 
-  $sql = 'SELECT * FROM `users` WHERE `id`=?';
-  $data = array($user_id);
-  $stmt = $dbh->prepare($sql);
-  $stmt->execute($data);
+//   $sql = 'SELECT * FROM `users` WHERE `id`=?';
+//   $data = array($user_id);
+//   $stmt = $dbh->prepare($sql);
+//   $stmt->execute($data);
 
-// $signin_userに取り出したレコードを代入する
-  $profile_user = $stmt->fetch(PDO::FETCH_ASSOC);
+// // $signin_userに取り出したレコードを代入する
+//   $profile_user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+  $signin_user = get_signin_user($dbh,$_SESSION["id"]);
 
 
   // follow
@@ -131,7 +133,7 @@ else{
         <a href="follow.php?follower_id=<?php echo $profile_user["id"] ;?>" class="img-thumbnail"><button class="btn btn-default btn-block">フォローする</button></a>
 
         <?php }else{ ?>
-        <a href="#" class="img-thumbnail"><button class="btn btn-default btn-block">フォロー解除する</button></a>
+        <a href="unfollow.php?follower_id=<?php echo $profile_user["id"] ;?>" class="img-thumbnail"><button class="btn btn-default btn-block">フォロー解除する</button></a>
         <?php } ?>
 
       <?php } ?>
